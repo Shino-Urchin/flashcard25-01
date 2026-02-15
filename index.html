@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生物基礎マスター Pro</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+        body { 
+            background-color: #f1f5f9; 
+            font-family: 'Noto Sans JP', sans-serif; 
+            color: #1e293b;
+        }
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useCallback } = React;
+
+        const Icon = ({ name, className = "" }) => {
+            const icons = {
+                'volume-2': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>,
+                'chevron-left': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m15 18-6-6 6-6"/></svg>,
+                'chevron-right': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg>,
+                'check-circle': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+                'rotate-ccw': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>,
+                'arrow-right-left': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>,
+                'shuffle': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>,
+                'help-circle': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>,
+                'star': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+                'menu': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
+                'brain': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.54Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.54Z"/></svg>,
+                'shield': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+                'flask': <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M10 2v8a6 6 0 1 0 4 0V2"/><line x1="8" y1="2" x2="16" y2="2"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+            };
+            return icons[name] || null;
+        };
+
+        const INITIAL_CARDS = [
+            { id: 1, category: "内分泌系・神経系", front: "体内環境が一定の範囲に保たれる性質を何というか？", back: "恒常性（ホメオスタシス）" },
+            { id: 2, category: "内分泌系・神経系", front: "自律神経系や内分泌系の中枢はどこか？", back: "間脳の視床下部" },
+            { id: 3, category: "内分泌系・神経系", front: "驚いたときや運動時に働き、心拍数を増加させる自律神経は？", back: "交感神経" },
+            { id: 4, category: "内分泌系・神経系", front: "食事中や休息時に働き、消化管の働きを促進する自律神経は？", back: "副交感神経" },
+            { id: 5, category: "内分泌系・神経系", front: "心臓にある、心拍のリズムを決定する部分は？", back: "洞房結節（ペースメーカー）" },
+            { id: 6, category: "内分泌系・神経系", front: "特定の標的器官に作用する化学物質の総称は？", back: "ホルモン" },
+            { id: 7, category: "内分泌系・神経系", front: "ホルモンを分泌する器官や細胞は？", back: "内分泌腺" },
+            { id: 8, category: "内分泌系・神経系", front: "標的器官が持つ特定のホルモンと結合する部位は？", back: "受容体" },
+            { id: 9, category: "内分泌系・神経系", front: "視床下部にある内分泌腺は？", back: "神経分泌細胞" },
+            { id: 10, category: "内分泌系・神経系", front: "血糖濃度の変化を感知する器官は？", back: "すい臓と視床下部" },
+            { id: 11, category: "内分泌系・神経系", front: "ヒトの健康な血糖濃度は約何％か？", back: "約0.1%" },
+            { id: 12, category: "内分泌系・神経系", front: "肝臓でグルコースが貯蔵用に変わった多糖は？", back: "グリコーゲン" },
+            { id: 13, category: "内分泌系・神経系", front: "すい臓のランゲルハンス島A細胞から分泌され、血糖値を上げるのは？", back: "グルカゴン" },
+            { id: 14, category: "内分泌系・神経系", front: "結果が原因に遡って抑制的に働く調節機構は？", back: "負のフィードバック" },
+            { id: 15, category: "内分泌系・神経系", front: "糸球体からボーマンのうへ濾し出された体液は？", back: "原尿" },
+            { id: 16, category: "内分泌系・神経系", front: "細尿管で必要物質が再び血液へ戻る現象は？", back: "再吸収" },
+            { id: 17, category: "内分泌系・神経系", front: "細尿管を通過した後、水が再吸収される場所は？", back: "集合管" },
+            { id: 18, category: "内分泌系・神経系", front: "腎臓の機能上の単位のことは？", back: "ネフロン" },
+            { id: 19, category: "内分泌系・神経系", front: "血糖値が慢性的に高くなる病気は？", back: "糖尿病" },
+            { id: 20, category: "内分泌系・神経系", front: "寒いとき熱産生を促すのは何神経？", back: "交感神経" },
+            { id: 21, category: "生体防御", front: "皮膚や粘膜などによる侵入阻止は？", back: "物理的・化学的防御" },
+            { id: 22, category: "生体防御", front: "涙や汗に含まれ、細胞壁を分解する酵素は？", back: "リゾチーム" },
+            { id: 23, category: "生体防御", front: "食細胞が異物を飲み込み分解する働きは？", back: "食作用" },
+            { id: 24, category: "生体防御", front: "最も数が多く、初期に働く食細胞は？", back: "好中球" },
+            { id: 25, category: "生体防御", front: "抗原提示を行い、免疫の開始に関わる細胞は？", back: "樹状細胞" },
+            { id: 26, category: "生体防御", front: "特定の抗原によらず初期に働く免疫は？", back: "自然免疫" },
+            { id: 27, category: "生体防御", front: "抗原を記憶し特異的に働く免疫は？", back: "獲得免疫（適応免疫）" },
+            { id: 28, category: "生体防御", front: "抗原情報を認識し、指令を出すT細胞は？", back: "ヘルパーT細胞" },
+            { id: 29, category: "生体防御", front: "胸腺で分化・成熟するリンパ球は？", back: "T細胞" },
+            { id: 30, category: "生体防御", front: "骨髄で成熟し抗体を産生するのは？", back: "B細胞" },
+            { id: 31, category: "生体防御", front: "抗体の主成分であるタンパク質は？", back: "免疫グロブリン" },
+            { id: 32, category: "生体防御", front: "抗体と抗原が結合する反応は？", back: "抗原抗体反応" },
+            { id: 33, category: "生体防御", front: "キラーT細胞が直接感染細胞を攻撃する免疫は？", back: "細胞性免疫" },
+            { id: 34, category: "生体防御", front: "二度目の侵入に強く反応する仕組みは？", back: "免疫記憶" },
+            { id: 35, category: "生体防御", front: "人工的に免疫記憶を作らせる投与液は？", back: "ワクチン" },
+            { id: 36, category: "生体防御", front: "他の動物に作らせた抗体で治療する方法は？", back: "血清療法" },
+            { id: 37, category: "生体防御", front: "無害な物質に免疫が過剰反応するのは？", back: "アレルギー" },
+            { id: 38, category: "生体防御", front: "自分の細胞を誤って攻撃する疾患は？", back: "自己免疫疾患" },
+            { id: 39, category: "生体防御", front: "HIVがT細胞を破壊し免疫低下する病気は？", back: "エイズ（AIDS）" },
+            { id: 40, category: "生体防御", front: "他人の臓器を非自己として攻撃する反応は？", back: "拒絶反応" },
+            { id: 41, category: "ホルモンテスト", front: "【内分泌腺】間脳の視床下部\n【機能】脳下垂体前葉の分泌を促進する", back: "放出ホルモン" },
+            { id: 42, category: "ホルモンテスト", front: "【内分泌腺】間脳の視床下部\n【機能】脳下垂体前葉の分泌を抑制する", back: "放出抑制ホルモン" },
+            { id: 43, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体前葉\n【機能】タンパク質合成・成長促進・血糖上昇", back: "成長ホルモン" },
+            { id: 44, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体前葉\n【機能】甲状腺の発育とチロキシン分泌を促進", back: "甲状腺刺激ホルモン" },
+            { id: 45, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体前葉\n【機能】副腎皮質の発育と糖質分泌を促進", back: "副腎皮質刺激ホルモン" },
+            { id: 46, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体後葉\n【機能】腎臓での水の再吸収を促進・尿量減少", back: "バソプレシン" },
+            { id: 47, category: "ホルモンテスト", front: "【内分泌腺】甲状腺\n【機能】代謝促進。ヨウ素を含む", back: "チロキシン" },
+            { id: 48, category: "ホルモンテスト", front: "【内分泌腺】副甲状腺\n【機能】血中のCaイオン濃度を上昇させる", back: "パラトルモン" },
+            { id: 49, category: "ホルモンテスト", front: "【内分泌腺】すい臓A細胞\n【機能】グリコーゲン分解を促進し、血糖上昇", back: "グルカゴン" },
+            { id: 50, category: "ホルモンテスト", front: "【内分泌腺】すい臓B細胞\n【機能】グルコース消費と合成を促進し、血糖低下", back: "インスリン" },
+            { id: 51, category: "ホルモンテスト", front: "【内分泌腺】副腎髄質\n【機能】交感神経の刺激を受け、血糖を上昇させる", back: "アドレナリン" },
+            { id: 52, category: "ホルモンテスト", front: "【内分泌腺】副腎皮質\n【機能】タンパク質からの糖の合成を促進", back: "糖質コルチコイド" },
+            { id: 53, category: "ホルモンテスト", front: "【内分泌腺】副腎皮質\n【機能】腎臓でのNaイオン再吸収を促進", back: "鉱質コルチコイド" },
+            { id: 54, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体後葉\n【機能】血圧上昇作用も持つ体液調節ホルモン", back: "バソプレシン" },
+            { id: 55, category: "ホルモンテスト", front: "【内分泌腺】すい臓B細胞\n【機能】糖尿病において分泌不足が問題となるのは？", back: "インスリン" },
+            { id: 56, category: "ホルモンテスト", front: "【内分泌腺】副腎髄質\n【機能】ストレスに反応し分泌、心拍数を増加させる", back: "アドレナリン" },
+            { id: 57, category: "ホルモンテスト", front: "【内分泌腺】甲状腺\n【機能】両生類の変態を促進", back: "チロキシン" },
+            { id: 58, category: "ホルモンテスト", front: "【内分泌腺】間脳の視床下部\n【機能】脳下垂体後葉へ送られる代表的なホルモン", back: "バソプレシン" },
+            { id: 59, category: "ホルモンテスト", front: "【内分泌腺】脳下垂体前葉\n【機能】副腎を標的とする「刺激ホルモン」", back: "副腎皮質刺激ホルモン" },
+            { id: 60, category: "ホルモンテスト", front: "【内分泌腺】副腎皮質\n【機能】血糖維持に働くステロイドホルモンの一種", back: "糖質コルチコイド" }
+        ];
+
+        const App = () => {
+            const [view, setView] = useState('menu');
+            const [selectedCategory, setSelectedCategory] = useState(null);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [isFlipped, setIsFlipped] = useState(false);
+            const [speaking, setSpeaking] = useState(false);
+            const [isReverseMode, setIsReverseMode] = useState(false);
+            const [isShuffleMode, setIsShuffleMode] = useState(false);
+            const [isQuizMode, setIsQuizMode] = useState(false);
+            const [isWeakOnlyMode, setIsWeakOnlyMode] = useState(false);
+            const [quizFeedback, setQuizFeedback] = useState(null); // 'correct' | 'wrong'
+            const [learnedIds, setLearnedIds] = useState(() => {
+                const saved = localStorage.getItem('bio_learned_ids');
+                return saved ? JSON.parse(saved) : [];
+            });
+
+            // データの保存
+            useEffect(() => {
+                localStorage.setItem('bio_learned_ids', JSON.stringify(learnedIds));
+            }, [learnedIds]);
+
+            // カテゴリ・フィルタ・シャッフルを適用したカードリスト
+            const displayCards = useMemo(() => {
+                let filtered = INITIAL_CARDS.filter(c => c.category === selectedCategory);
+                if (isWeakOnlyMode) {
+                    filtered = filtered.filter(c => !learnedIds.includes(c.id));
+                }
+                if (isShuffleMode) {
+                    const shuffled = [...filtered];
+                    for (let i = shuffled.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                    }
+                    return shuffled;
+                }
+                return filtered;
+            }, [selectedCategory, isShuffleMode, isWeakOnlyMode, learnedIds]);
+
+            const currentCard = displayCards[currentIndex];
+            const learnedCount = INITIAL_CARDS.filter(c => c.category === selectedCategory && learnedIds.includes(c.id)).length;
+            const totalCount = INITIAL_CARDS.filter(c => c.category === selectedCategory).length;
+
+            const displayFront = isReverseMode ? currentCard?.back : currentCard?.front;
+            const displayBack = isReverseMode ? currentCard?.front : currentCard?.back;
+
+            // クイズの選択肢生成
+            const quizOptions = useMemo(() => {
+                if (!currentCard || !isQuizMode) return [];
+                const correct = isReverseMode ? currentCard.front : currentCard.back;
+                const pool = INITIAL_CARDS
+                    .filter(c => c.category === selectedCategory && c.id !== currentCard.id)
+                    .map(c => isReverseMode ? c.front : c.back);
+                
+                const options = [correct];
+                while (options.length < 4 && pool.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * pool.length);
+                    const option = pool.splice(randomIndex, 1)[0];
+                    if (!options.includes(option)) options.push(option);
+                }
+                return options.sort(() => Math.random() - 0.5);
+            }, [currentCard, isQuizMode, isReverseMode, selectedCategory]);
+
+            const speak = (text) => {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const uttr = new SpeechSynthesisUtterance(text);
+                    uttr.lang = 'ja-JP';
+                    uttr.onstart = () => setSpeaking(true);
+                    uttr.onend = () => setSpeaking(false);
+                    window.speechSynthesis.speak(uttr);
+                }
+            };
+
+            const toggleLearned = (id) => {
+                setLearnedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+            };
+
+            const handleAnswer = (option) => {
+                const correct = isReverseMode ? currentCard.front : currentCard.back;
+                if (option === correct) {
+                    setQuizFeedback('correct');
+                    // 「覚えた」リストへの自動追加を削除
+                    setTimeout(() => {
+                        setQuizFeedback(null);
+                        setCurrentIndex((prev) => (prev + 1) % displayCards.length);
+                        setIsFlipped(false);
+                    }, 800);
+                } else {
+                    setQuizFeedback('wrong');
+                    setTimeout(() => setQuizFeedback(null), 800);
+                }
+            };
+
+            if (view === 'menu') {
+                return (
+                    <div className="min-h-screen p-6 max-w-lg mx-auto flex flex-col justify-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="text-center mb-12">
+                            <h1 className="text-4xl font-black text-slate-800 mb-2 tracking-tight">生物基礎<span className="text-blue-600">マスター</span></h1>
+                            <p className="text-slate-400 font-bold text-xs tracking-widest uppercase">Biology Essentials Pro</p>
+                        </div>
+                        <div className="space-y-4">
+                            {[
+                                { title: "内分泌系・神経系", icon: "brain", color: "blue" },
+                                { title: "生体防御", icon: "shield", color: "green" },
+                                { title: "ホルモンテスト", icon: "flask", color: "indigo" }
+                            ].map((item) => {
+                                const count = INITIAL_CARDS.filter(c => c.category === item.title && learnedIds.includes(c.id)).length;
+                                return (
+                                    <button 
+                                        key={item.title}
+                                        onClick={() => { setSelectedCategory(item.title); setCurrentIndex(0); setView('study'); }}
+                                        className="group w-full bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:border-blue-500 hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-5"
+                                    >
+                                        <div className={`p-4 rounded-2xl bg-${item.color}-50 text-${item.color}-600 group-hover:scale-110 transition-transform`}>
+                                            <Icon name={item.icon} />
+                                        </div>
+                                        <div className="text-left flex-1">
+                                            <h2 className="font-black text-lg text-slate-800">{item.title}</h2>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <div className="w-full max-w-[80px] bg-slate-100 h-1 rounded-full overflow-hidden">
+                                                    <div className={`h-full bg-${item.color}-500`} style={{ width: `${(count/20)*100}%` }}></div>
+                                                </div>
+                                                <span className="text-[10px] font-bold text-slate-400">{count}/20</span>
+                                            </div>
+                                        </div>
+                                        <Icon name="chevron-right" className="text-slate-200 group-hover:text-blue-500 transition-colors" />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen p-4 max-w-lg mx-auto flex flex-col animate-in fade-in duration-500">
+                    {/* Header */}
+                    <div className="flex justify-between items-center mb-6">
+                        <button onClick={() => setView('menu')} className="p-3 bg-white rounded-2xl text-slate-400 shadow-sm border border-slate-100 hover:text-slate-800"><Icon name="menu" /></button>
+                        <div className="text-center">
+                            <span className="text-[10px] font-black text-slate-400 tracking-tighter block uppercase">Chapter</span>
+                            <span className="text-xs font-black text-slate-800">{selectedCategory}</span>
+                        </div>
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => { setIsWeakOnlyMode(!isWeakOnlyMode); setCurrentIndex(0); }} 
+                                className={`p-3 rounded-2xl transition-all shadow-sm border ${isWeakOnlyMode ? 'bg-yellow-500 text-white border-yellow-400' : 'bg-white text-slate-300 border-slate-100'}`}
+                                title="苦手克服モード"
+                            >
+                                <Icon name="star" className="w-4 h-4" />
+                            </button>
+                            <button 
+                                onClick={() => { setIsQuizMode(!isQuizMode); setIsFlipped(false); }} 
+                                className={`p-3 rounded-2xl transition-all shadow-sm border ${isQuizMode ? 'bg-blue-600 text-white border-blue-500' : 'bg-white text-slate-300 border-slate-100'}`}
+                                title="クイズモード"
+                            >
+                                <Icon name="help-circle" className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mb-8 px-2">
+                        <div className="flex justify-between text-[10px] font-black text-slate-400 mb-2">
+                            <span className="flex items-center gap-1"><Icon name="check-circle" className="w-3 h-3 text-green-500"/> 進捗度 {learnedCount} / {totalCount}</span>
+                            <span>{Math.round((learnedCount / totalCount) * 100)}%</span>
+                        </div>
+                        <div className="w-full bg-white h-2 rounded-full p-0.5 shadow-inner">
+                            <div className="bg-gradient-to-r from-blue-400 to-blue-600 h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${(learnedCount / totalCount) * 100}%` }}></div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    {displayCards.length === 0 ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-10 bg-white rounded-[40px] shadow-sm border border-slate-100 animate-in zoom-in duration-500">
+                            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+                                <Icon name="check-circle" className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-800 mb-2">素晴らしい！全問達成！</h3>
+                            <p className="text-sm text-slate-400 font-bold mb-6">このカテゴリの苦手項目はすべて克服されました。</p>
+                            <button onClick={() => { setIsWeakOnlyMode(false); setCurrentIndex(0); }} className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">全カードで復習する</button>
+                        </div>
+                    ) : isQuizMode ? (
+                        /* Quiz View */
+                        <div className="flex-1 flex flex-col">
+                            <div className={`relative flex-1 min-h-[160px] bg-white rounded-[40px] shadow-sm border-2 ${quizFeedback === 'correct' ? 'border-green-400 bg-green-50' : quizFeedback === 'wrong' ? 'border-red-400 bg-red-50' : 'border-slate-50'} px-8 pt-16 pb-10 flex flex-col items-center justify-center mb-6 transition-all`}>
+                                <div className="absolute top-6 left-1/2 -translate-x-1/2 px-4 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Question {currentIndex + 1}</div>
+                                <p className="text-lg font-bold text-center leading-relaxed text-slate-700 whitespace-pre-wrap">{displayFront}</p>
+                            </div>
+                            <div className="grid grid-cols-1 gap-3 mb-8">
+                                {quizOptions.map((option, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => handleAnswer(option)}
+                                        className="group bg-white p-5 rounded-3xl border-2 border-slate-100 shadow-sm hover:border-blue-500 hover:bg-blue-50 transition-all text-left flex items-center gap-4"
+                                    >
+                                        <div className="w-8 h-8 rounded-xl bg-slate-50 text-slate-400 font-black flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors shrink-0">{idx + 1}</div>
+                                        <span className="font-bold text-slate-700 leading-tight">{option}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        /* Flashcard View */
+                        <div className="flex-1 flex flex-col">
+                            <div className="perspective-1000 h-80 w-full mb-8 cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
+                                <div className={`relative w-full h-full transition-all duration-700 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
+                                    <div className="absolute inset-0 bg-white border-b-8 border-blue-500 rounded-[40px] card-shadow flex flex-col items-center justify-center p-10 backface-hidden">
+                                        <button onClick={(e) => { e.stopPropagation(); speak(displayFront); }} className={`absolute top-6 right-6 p-3 rounded-2xl ${speaking ? 'bg-blue-100 text-blue-600 scale-110' : 'bg-slate-50 text-slate-200'} transition-all`}><Icon name="volume-2" /></button>
+                                        <p className={`text-center leading-relaxed whitespace-pre-wrap font-bold ${isReverseMode ? 'text-4xl text-blue-600' : 'text-xl text-slate-700'}`}>{displayFront}</p>
+                                        <span className="absolute bottom-6 text-[10px] font-black text-slate-300 uppercase tracking-widest">Tap to flip</span>
+                                    </div>
+                                    <div className="absolute inset-0 bg-blue-600 border-b-8 border-blue-800 rounded-[40px] card-shadow flex flex-col items-center justify-center p-10 rotate-y-180 backface-hidden text-white text-center">
+                                        <button onClick={(e) => { e.stopPropagation(); speak(displayBack); }} className="absolute top-6 right-6 p-3 bg-blue-700 rounded-2xl"><Icon name="volume-2" /></button>
+                                        <p className={`leading-relaxed whitespace-pre-wrap font-bold ${!isReverseMode ? 'text-4xl' : 'text-lg text-blue-100'}`}>{displayBack}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Flashcard Controls */}
+                            <div className="flex gap-4 mb-10">
+                                <button onClick={() => { setIsFlipped(false); setCurrentIndex((prev) => (prev - 1 + displayCards.length) % displayCards.length); }} className="p-6 bg-white rounded-3xl border border-slate-100 text-slate-300 flex justify-center hover:text-slate-500 transition-colors shadow-sm"><Icon name="chevron-left" /></button>
+                                <button onClick={() => toggleLearned(currentCard.id)} className={`flex-1 p-6 rounded-3xl font-black flex items-center justify-center gap-3 transition-all ${learnedIds.includes(currentCard?.id) ? 'bg-green-500 text-white shadow-lg shadow-green-100' : 'bg-white border-2 border-slate-100 text-slate-400'}`}>
+                                    <Icon name="check-circle" className={learnedIds.includes(currentCard?.id) ? "animate-bounce" : ""} /> {learnedIds.includes(currentCard?.id) ? '覚えた！' : '覚えた'}
+                                </button>
+                                <button onClick={() => { setIsFlipped(false); setCurrentIndex((prev) => (prev + 1) % displayCards.length); }} className="p-6 bg-white rounded-3xl border border-slate-100 text-slate-300 flex justify-center hover:text-slate-500 transition-colors shadow-sm"><Icon name="chevron-right" /></button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bottom Utility Bar */}
+                    {!isQuizMode && (
+                        <div className="mt-auto grid grid-cols-3 gap-2 py-4">
+                            <button onClick={() => { setIsShuffleMode(!isShuffleMode); setCurrentIndex(0); }} className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${isShuffleMode ? 'bg-orange-50 text-orange-600' : 'text-slate-300 hover:text-slate-500'}`}>
+                                <Icon name="shuffle" className="w-5 h-5" />
+                                <span className="text-[9px] font-black uppercase">Shuffle</span>
+                            </button>
+                            <button onClick={() => { setIsReverseMode(!isReverseMode); setIsFlipped(false); }} className={`flex flex-col items-center gap-1 p-3 rounded-2xl transition-all ${isReverseMode ? 'bg-indigo-50 text-indigo-600' : 'text-slate-300 hover:text-slate-500'}`}>
+                                <Icon name="arrow-right-left" className="w-5 h-5" />
+                                <span className="text-[9px] font-black uppercase">Reverse</span>
+                            </button>
+                            <button onClick={() => { if(confirm('進捗をリセットしますか？')) setLearnedIds(prev => prev.filter(id => !INITIAL_CARDS.some(c => c.category === selectedCategory && c.id === id))); }} className="flex flex-col items-center gap-1 p-3 rounded-2xl text-slate-300 hover:text-red-400 transition-all">
+                                <Icon name="rotate-ccw" className="w-5 h-5" />
+                                <span className="text-[9px] font-black uppercase">Reset</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
